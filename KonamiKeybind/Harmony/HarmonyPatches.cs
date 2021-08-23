@@ -75,7 +75,7 @@ namespace DuckGame.KonamiKeybind
         }
 
         [HarmonyPatch(typeof(Duck))]
-        //[HarmonyPatch(nameof(Duck.Update))]
+        [HarmonyPatch(nameof(Duck.Update))]
         // Makes ducks pop on konami button
         internal static class DuckUpdatepatch
         {
