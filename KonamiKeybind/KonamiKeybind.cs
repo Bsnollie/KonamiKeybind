@@ -14,6 +14,8 @@ namespace DuckGame.KonamiKeybind
 
             // Thanks Drake! <3
             MDependencyResolver.ResolveDependencies();
+
+            base.OnPreInitialize();
         }
 
         protected override void OnPostInitialize()
@@ -22,6 +24,7 @@ namespace DuckGame.KonamiKeybind
             try
             {
                 HarmonyLoader.Loader.harmonyInstance.PatchAll();
+                Log("Patched everything successfully!", LogType.Success);
             }
             catch (Exception)
             {
@@ -33,6 +36,8 @@ namespace DuckGame.KonamiKeybind
             KonamiCooldownManager.Initialize();
 
             Log("Loaded mod successfully!", LogType.Success);
+
+            base.OnPostInitialize();
         }
 
         public static void Log(string log, LogType logType = LogType.Message)
