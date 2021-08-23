@@ -59,6 +59,7 @@
     </Reference>
     <Reference Include="HarmonyLoader">
       <HintPath>..\content\dlls\HarmonyLoader.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
