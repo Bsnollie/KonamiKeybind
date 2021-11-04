@@ -81,11 +81,13 @@ namespace DuckGame.KonamiKeybind
         {
             internal static void Postfix(Duck __instance)
             {
+                if (__instance.controlledBy != null) return;
+
                 if (!KonamiCooldownManager.CheckCooldown(__instance) && __instance.isServerForObject && __instance.inputProfile != null && __instance.inputProfile.Pressed("KONAMI", false))
                 {
                     __instance.position = __instance.cameraPosition;
-
                     __instance.Presto();
+
                     KonamiCooldownManager.AddCooldown(__instance);
                 }
             }
