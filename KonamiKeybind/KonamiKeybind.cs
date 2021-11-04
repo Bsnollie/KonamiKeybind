@@ -10,6 +10,8 @@ namespace DuckGame.KonamiKeybind
 
         private static readonly string[] logColors = new string[] { "|WHITE|", "|YELLOW|", "|RED|", "|GREEN|" };
 
+        public static readonly string InputName = "KONAMI";
+
         public override Priority priority => Priority.Monitor;
 
         protected override void OnPreInitialize()
@@ -30,10 +32,11 @@ namespace DuckGame.KonamiKeybind
                 HarmonyLoader.Loader.harmonyInstance.PatchAll();
                 Log("Patched everything successfully!", LogType.Success);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Log("There was an error while patching!", LogType.Error);
                 Log("This will lead to malfunctions and/or crashes.", LogType.Error);
+                throw e;
             }
 
             // Initialize classes

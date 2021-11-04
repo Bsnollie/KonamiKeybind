@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using System.Runtime;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,28 +12,26 @@ namespace DuckGame.KonamiKeybind
     {
         private static KonamiCooldownManager s_instance;
 
-        private static IDictionary<Duck, ActionTimer> s_cooldowns = new Dictionary<Duck, ActionTimer>();
+        private static IDictionary<ushort, int> s_cooldowns = new Dictionary<ushort, int>();
 
         /// <summary>
-        /// Checks if a duck has cooldown.
+        /// Checks if a duck has cooldown, if it doesn't, then cooldown is added.
         /// </summary>
         /// <param name="duck">Duck to check.</param>
         /// <returns>True if <paramref name="duck"/> has cooldown, false otherwise.</returns>
-        public static bool CheckCooldown(Duck duck)
+        public static bool CheckOrAddCooldown(Duck duck)
         {
-            return s_cooldowns.Keys.Contains(duck);
-        }
+            ushort index = duck.globalIndex;
+            bool flag = s_cooldowns.ContainsKey(index);
 
-        /// <summary>
-        /// Add cooldown to certain duck.
-        /// </summary>
-        /// <param name="duck"></param>
-        public static void AddCooldown(Duck duck)
-        {
-            if (CheckCooldown(duck)) return;
+            if  (!flag)
+            {
+                int date = (int)MonoMain.GetLocalTime().AddSeconds(1.15f).Ticks;
 
-            ActionTimer timer = new ActionTimer(0.01f, 0.65f);
-            s_cooldowns.Add(duck, timer);
+                s_cooldowns.Add(index, date);
+            }
+
+            return flag;
         }
 
         public static KonamiCooldownManager Instance => s_instance;
@@ -48,22 +48,17 @@ namespace DuckGame.KonamiKeybind
 
         public void Update()
         {
-            IList<Duck> remove = new List<Duck>();
+            int date = (int)MonoMain.GetLocalTime().Ticks;
+            List<ushort> removals = new List<ushort>();
 
-            // Find finished cooldowns
-            foreach (KeyValuePair<Duck, ActionTimer> kPair in s_cooldowns)
+            foreach (KeyValuePair<ushort, int> pair in s_cooldowns)
             {
-                if (kPair.Value)
-                {
-                    remove.Add(kPair.Key);
-                    AutoUpdatables.core._updateables.Remove(new WeakReference(kPair.Value));
-                }
+                if (date >= pair.Value) removals.Add(pair.Key);
             }
 
-            // Removed finished cooldowns
-            foreach (Duck duck in remove)
+            foreach (ushort address in removals)
             {
-                s_cooldowns.Remove(duck);
+                s_cooldowns.Remove(address).ToString();
             }
         }
     }
