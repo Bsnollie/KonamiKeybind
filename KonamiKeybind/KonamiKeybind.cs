@@ -4,9 +4,13 @@ using System;
 
 namespace DuckGame.KonamiKeybind
 {
-    public class KonamiKeybind : DisabledMod
+    public class KonamiKeybind : ClientMod
     {
         public static ModConfiguration Config;
+
+        private static readonly string[] logColors = new string[] { "|WHITE|", "|YELLOW|", "|RED|", "|GREEN|" };
+
+        public override Priority priority => Priority.Monitor;
 
         protected override void OnPreInitialize()
         {
@@ -49,7 +53,5 @@ namespace DuckGame.KonamiKeybind
         {
             Message, Warning, Error, Success
         }
-
-        private static readonly string[] logColors = new string[] { "|WHITE|", "|YELLOW|", "|RED|", "|GREEN|" };
     }
 }

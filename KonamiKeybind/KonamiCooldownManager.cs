@@ -8,6 +8,10 @@ namespace DuckGame.KonamiKeybind
 {
     public class KonamiCooldownManager : IAutoUpdate
     {
+        private static KonamiCooldownManager s_instance;
+
+        private static IDictionary<Duck, ActionTimer> s_cooldowns = new Dictionary<Duck, ActionTimer>();
+
         /// <summary>
         /// Checks if a duck has cooldown.
         /// </summary>
@@ -62,9 +66,5 @@ namespace DuckGame.KonamiKeybind
                 s_cooldowns.Remove(duck);
             }
         }
-
-        private static KonamiCooldownManager s_instance;
-
-        private static IDictionary<Duck, ActionTimer> s_cooldowns = new Dictionary<Duck, ActionTimer>();
     }
 }
