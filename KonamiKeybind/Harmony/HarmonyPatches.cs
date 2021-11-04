@@ -11,7 +11,7 @@ namespace DuckGame.KonamiKeybind
     {
         [HarmonyPatch(typeof(UIControlConfig))]
         [HarmonyPatch(MethodType.Constructor)]
-        internal static class UIControlConfigCtorPatch
+        internal static class UIControlConfig_Ctor
         {
             internal static MethodBase TargetMethod()
             {
@@ -24,7 +24,7 @@ namespace DuckGame.KonamiKeybind
                 List<CodeInstruction> original = new List<CodeInstruction>(instructions);
                 List<CodeInstruction> patch = new List<CodeInstruction>();
 
-                FieldInfo konamiCEFld = AccessTools.Field(typeof(UIControlConfigCtorPatch), nameof(c_konamiControlElement));
+                FieldInfo konamiCEFld = AccessTools.Field(typeof(UIControlConfig_Ctor), nameof(c_konamiControlElement));
                 MethodInfo uiCompAdd = AccessTools.DeclaredMethod(typeof(UIComponent), nameof(UIComponent.Add));
 
                 int index = -1;
@@ -49,7 +49,7 @@ namespace DuckGame.KonamiKeybind
 
                 // Add KONAMI keybind and line skip
                 patch.Add(new CodeInstruction(OpCodes.Ldloc_1));
-                patch.Add(new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(UIControlConfigCtorPatch), nameof(c_lineSkip))));
+                patch.Add(new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(UIControlConfig_Ctor), nameof(c_lineSkip))));
                 patch.Add(new CodeInstruction(OpCodes.Ldc_I4_1));
                 patch.Add(new CodeInstruction(OpCodes.Callvirt, uiCompAdd));
                 patch.Add(new CodeInstruction(OpCodes.Ldloc_1));
@@ -69,7 +69,7 @@ namespace DuckGame.KonamiKeybind
                 return original.AsEnumerable<CodeInstruction>();
             }
 
-            internal static readonly UIControlElement c_konamiControlElement = new UIControlElement("|DGRED|KONAMI", "KONAMI", new DeviceInputMapping(), null, new FieldBinding(Options.Data, "sfxVolume", 0f, 1f, 0.1f), default(Color));
+            internal static readonly UIControlElement c_konamiControlElement = new UIControlElement("|DGRED|KONAMI", KonamiKeybind.InputName, new DeviceInputMapping(), null, new FieldBinding(Options.Data, "sfxVolume", 0f, 1f, 0.1f), default(Color));
 
             internal static readonly UIComponent c_lineSkip = new UIText(" ", Color.White, UIAlign.Center, -6f, null);
         }
@@ -77,18 +77,57 @@ namespace DuckGame.KonamiKeybind
         [HarmonyPatch(typeof(Duck))]
         [HarmonyPatch(nameof(Duck.Update))]
         // Makes ducks pop on konami button
-        internal static class DuckUpdatepatch
+        internal static class Duck_Update
         {
             internal static void Postfix(Duck __instance)
             {
                 if (__instance.controlledBy != null) return;
 
-                if (!KonamiCooldownManager.CheckCooldown(__instance) && __instance.isServerForObject && __instance.inputProfile != null && __instance.inputProfile.Pressed("KONAMI", false))
+                if (__instance.inputProfile.Pressed(KonamiKeybind.InputName, false)
+                    && __instance.isServerForObject 
+                    && __instance.inputProfile != null 
+                    && !KonamiCooldownManager.CheckOrAddCooldown(__instance))
                 {
                     __instance.position = __instance.cameraPosition;
                     __instance.Presto();
 
-                    KonamiCooldownManager.AddCooldown(__instance);
+                    if (Level.current is TitleScreen)
+                    {
+                        if (__instance.ragdoll != null)
+                        {
+                            __instance.ragdoll.Unragdoll();
+                        }
+
+                        __instance.position = new Vec2(160f, 80f);
+
+                        SFX.Play("convert", 0.75f);
+                        __instance.Ressurect();
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch]
+        internal static class Beams_Update
+        {
+            internal static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return AccessTools.Method(typeof(EditorBeam), nameof(EditorBeam.Update));
+                yield return AccessTools.Method(typeof(LibraryBeam), nameof(LibraryBeam.Update));
+                yield return AccessTools.Method(typeof(OptionsBeam), nameof(OptionsBeam.Update));
+            }
+
+            // Make beams stop pulling ducks if they pressed KONAMI.
+            internal static void Postfix(List<BeamDuck> ____ducks, ref bool ____leaveLeft, ref bool ___entered)
+            {
+                foreach (BeamDuck bd in ____ducks)
+                {
+                    if (bd.duck.inputProfile.Pressed(KonamiKeybind.InputName, false))
+                    {
+                        bd.leaving = true;
+                        ____leaveLeft = false;
+                        ___entered = false;
+                    }
                 }
             }
         }
