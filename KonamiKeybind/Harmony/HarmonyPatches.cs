@@ -81,7 +81,7 @@ namespace DuckGame.KonamiKeybind
         {
             internal static void Postfix(Duck __instance)
             {
-                if (__instance.controlledBy != null) return;
+                if (!__instance.isServerForObject || __instance.inputProfile == null || __instance.controlledBy != null) return;
 
                 if (__instance.inputProfile.Pressed(KonamiKeybind.InputName, false)
                     && __instance.isServerForObject 
